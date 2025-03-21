@@ -77,7 +77,7 @@ def upload_file():
             # Guardar archivo de alumnos
             subir_alumnos_filename = f"Subir_Alumnos_{comision}_{actividad}.csv"
             processed_file_alumnos = os.path.join(app.config['PROCESSED_FOLDER'], subir_alumnos_filename)
-            subir_alumnos_df.to_csv(processed_file_alumnos, index=False)
+            subir_alumnos_df.to_csv(processed_file_alumnos, index=False, encoding="utf-8")
 
             # Crear DataFrame para subir notas
             subir_notas_df = df[['DNI', 'Nota']].copy()
