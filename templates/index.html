@@ -24,29 +24,8 @@
     <!-- Formulario para carga de archivos -->
     <form action="/" method="post" enctype="multipart/form-data" id="upload-form">
 
-        <!-- Contenedor para mensajes de error mejorado -->
+        <!-- Contenedor para mensajes de error -->
         <div id="format-error-container"></div>
-        
-        <!-- Modal de requisitos que se mostrará junto con el error -->
-        <div id="requirements-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h3>Requisitos del archivo Excel</h3>
-                <ul id="requirements-list">
-                    <li>El archivo debe ser formato .xls, .xlsx</li>
-                    <li>Debe contener las columnas: Legajo, Nota, Promocion, Apellido, Nombre, DNI, Edicion, Fecha de inicio y Facultad regional</li>
-                    <li>El archivo sólo debe contener la tabla con los datos, sin titulos o textos adicionales fuera de la tabla</li>
-                    <li>Solo se procesarán registros de la Facultad Regional "FRBA"</li>
-                </ul>
-                <div class="example-container">
-                    <h4>Ejemplo de formato correcto:</h4>
-                    <a href="#" id="example-image-link">
-                        <img id="example-image" src="{{ url_for('static', filename='images/ejemplo.png') }}" alt="Ejemplo de Excel válido">
-                    </a>
-                    <p class="image-caption">Haga clic en la imagen para ampliar</p>
-                </div>
-            </div>
-        </div>
         
         <!-- Drop zone para carga de archivos -->
         <div id="drop-zone">
@@ -84,10 +63,6 @@
         <a id="download-notas" href="#" style="display: none;">
             <button>Descargar Notas</button>
         </a>
-        <div style="margin-top: 20px;">
-            <!-- Nuevo botón para reiniciar el proceso -->
-            <button id="restart-button" type="button">Cargar Nuevo Archivo</button>
-        </div>
     </div>
 
     <!-- Script para la interactividad de la página -->
@@ -101,82 +76,15 @@
         const errorContainer = document.getElementById("format-error-container");
         const form = document.getElementById("upload-form");
         const downloadSection = document.getElementById("download-section");
-        const restartButton = document.getElementById("restart-button");
-        const requirementsModal = document.getElementById("requirements-modal");
-        
-        // Campos del formulario para almacenar valores
-        const campo1 = document.getElementById("campo1");
-        const campo2 = document.getElementById("campo2");
-        const campo3 = document.getElementById("campo3");
-        const campo4 = document.getElementById("campo4");
-
-        // Cargar valores guardados si existen
-        loadSavedFormValues();
 
         // Ocultar sección de descarga al inicio
         downloadSection.style.display = "none";
-        requirementsModal.style.display = "none";
 
-        // Función para mostrar mensajes de error y requisitos
+        // Función para mostrar mensajes de error
         function showError(message) {
-            // Mostrar el mensaje de error
-            errorContainer.innerHTML = `
-                <div class="format-error">
-                    ${message}
-                    <button id="show-requirements" type="button">Ver requisitos de formato</button>
-                </div>
-            `;
+            errorContainer.innerHTML = `<div class="format-error">${message}</div>`;
             errorContainer.style.display = "block";
             errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Configurar el evento para mostrar el modal de requisitos
-            document.getElementById("show-requirements").addEventListener("click", function() {
-                requirementsModal.style.display = "block";
-            });
-            
-            // Configurar el evento para cerrar el modal
-            document.querySelector(".close-button").addEventListener("click", function() {
-                requirementsModal.style.display = "none";
-            });
-            
-            // Cerrar el modal si se hace clic fuera de él
-            window.addEventListener("click", function(event) {
-                if (event.target == requirementsModal) {
-                    requirementsModal.style.display = "none";
-                }
-            });
-            
-            // Configurar la imagen de ejemplo para que se amplíe al hacer clic
-            document.getElementById("example-image-link").addEventListener("click", function(e) {
-                e.preventDefault();
-                
-                // Crear un lightbox para la imagen
-                const lightbox = document.createElement("div");
-                lightbox.id = "lightbox";
-                lightbox.style.position = "fixed";
-                lightbox.style.top = "0";
-                lightbox.style.left = "0";
-                lightbox.style.width = "100%";
-                lightbox.style.height = "100%";
-                lightbox.style.backgroundColor = "rgba(0,0,0,0.8)";
-                lightbox.style.display = "flex";
-                lightbox.style.justifyContent = "center";
-                lightbox.style.alignItems = "center";
-                lightbox.style.zIndex = "1000";
-                
-                const img = document.createElement("img");
-                img.src = document.getElementById("example-image").src;
-                img.style.maxWidth = "90%";
-                img.style.maxHeight = "90%";
-                img.style.border = "2px solid white";
-                
-                lightbox.appendChild(img);
-                document.body.appendChild(lightbox);
-                
-                lightbox.addEventListener("click", function() {
-                    document.body.removeChild(lightbox);
-                });
-            });
         }
 
         // Función para ocultar mensajes de error
@@ -242,46 +150,6 @@
             }
         }
 
-        // Guardar valores del formulario en localStorage
-        function saveFormValues() {
-            const formValues = {
-                campo1: campo1.value,
-                campo2: campo2.value,
-                campo3: campo3.value,
-                campo4: campo4.value
-            };
-            localStorage.setItem('formValues', JSON.stringify(formValues));
-        }
-
-        // Cargar valores guardados del formulario
-        function loadSavedFormValues() {
-            // Verificar si estamos en una recarga de página o después de procesar un archivo
-            const isPageRefresh = !sessionStorage.getItem('formSubmitted');
-            
-            if (isPageRefresh) {
-                // Si es una recarga de página, limpiar los campos
-                campo1.value = '';
-                campo2.value = '';
-                campo3.value = '';
-                campo4.value = '';
-                // Limpiar localStorage también
-                localStorage.removeItem('formValues');
-            } else {
-                // Si venimos después de procesar un archivo, cargar valores guardados
-                const savedValues = localStorage.getItem('formValues');
-                if (savedValues) {
-                    const formValues = JSON.parse(savedValues);
-                    campo1.value = formValues.campo1 || '';
-                    campo2.value = formValues.campo2 || '';
-                    campo3.value = formValues.campo3 || '';
-                    campo4.value = formValues.campo4 || '';
-                }
-            }
-            
-            // Resetear la bandera de formulario enviado al cargar la página
-            sessionStorage.removeItem('formSubmitted');
-        }
-
         // Validación al enviar el formulario
         form.addEventListener("submit", function(event) {
             event.preventDefault(); // Evitar recarga de la página
@@ -291,12 +159,6 @@
                 showError("Debe seleccionar un archivo para continuar");
                 return;
             }
-
-            // Guardar valores del formulario
-            saveFormValues();
-            
-            // Establecer la bandera de formulario enviado
-            sessionStorage.setItem('formSubmitted', 'true');
 
             // Enviar los datos del formulario
             let formData = new FormData(this);
@@ -330,27 +192,6 @@
                 console.error("Error:", error);
                 showError("Ocurrió un error al procesar su solicitud. Por favor, inténtelo de nuevo.");
             });
-        });
-
-        // Evento para el botón de reinicio
-        restartButton.addEventListener("click", function() {
-            // Restaurar formulario
-            form.style.display = "block";
-            downloadSection.style.display = "none";
-            
-            // Limpiar el input file
-            fileInput.value = "";
-            fileList.innerText = "No hay archivo seleccionado";
-            dropZone.classList.remove("file-loaded");
-            
-            // Ocultar mensajes de error
-            hideError();
-            
-            // Mantener la bandera de formulario enviado
-            // (No hacemos sessionStorage.removeItem('formSubmitted') aquí)
-            
-            // Hacer scroll al inicio del formulario
-            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
     </script>
